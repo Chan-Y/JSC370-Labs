@@ -92,9 +92,11 @@ the MET data.
     plan to work with those).
 
 ``` r
-library(dtplyr)
+library(dtplyr) # translator between dplyr (tidyverse) and data.table
 library(dplyr)
 library(data.table)
+library(leaflet)
+library(ggplot2)
 ```
 
 2.  Load the met data from
@@ -145,6 +147,12 @@ merged_data <- merge(
   all.x = TRUE,
   all.y = FALSE
 )
+# Make it lazy
+met_lz <- lazy_dt(merged_data, immutable = FALSE)
+
+
+# MERGE OPT2 Same as left join in tidyverse
+# left_join(x = met, y = stations, by = c("USAFID"="USAF"))
 ```
 
 ## Question 1: Representative station for the US
@@ -155,29 +163,40 @@ weather stations that best represent continental US using the
 `quantile()` function. Do these three coincide?
 
 ``` r
-merged_data %>% 
+# average for each station
+met_avg_lz <- met_lz %>% 
   group_by(USAFID) %>% 
   summarise(
-    median_temp = median(temp, na.rm = TRUE),
-    median_wind_sp = median(wind.sp, na.rm = TRUE),
-    median_atm_press = median(atm.press, na.rm = TRUE)
+    # tmp = mean(temp, na.rm = TRUE),
+    # wind.sp = mean(wind.sp, na.rm = TRUE),
+    # atm.press = mean(atm.press, na.rm = TRUE)
+    # <===equivalent===>
+    across(
+      c(temp, wind.sp, atm.press),
+      function(x) mean(x, na.rm = TRUE)
+    )
   )
+# find median of temp, wind.sp, atm.press
+met_med_lz <- met_avg_lz %>% 
+  summarise(across(
+    2:4,
+    function(x) quantile(x, probs = .5, na.rm = TRUE)
+  ))
+  met_med_lz
 ```
 
-    ## Source: local data table [1,595 x 4]
-    ## Call:   `_DT1`[, .(median_temp = median(temp, na.rm = TRUE), median_wind_sp = median(wind.sp, 
-    ##     na.rm = TRUE), median_atm_press = median(atm.press, na.rm = TRUE)), 
-    ##     keyby = .(USAFID)]
+    ## Source: local data table [1 x 3]
+    ## Call:   `_DT1`[, .(temp = (function (x) 
+    ## mean(x, na.rm = TRUE))(temp), wind.sp = (function (x) 
+    ## mean(x, na.rm = TRUE))(wind.sp), atm.press = (function (x) 
+    ## mean(x, na.rm = TRUE))(atm.press)), keyby = .(USAFID)][, .(temp = (function (x) 
+    ## quantile(x, probs = 0.5, na.rm = TRUE))(temp), wind.sp = (function (x) 
+    ## quantile(x, probs = 0.5, na.rm = TRUE))(wind.sp), atm.press = (function (x) 
+    ## quantile(x, probs = 0.5, na.rm = TRUE))(atm.press))]
     ## 
-    ##   USAFID median_temp median_wind_sp median_atm_press
-    ##    <int>       <dbl>          <dbl>            <dbl>
-    ## 1 690150        32.8            3.1            1010.
-    ## 2 720110        31              2.1              NA 
-    ## 3 720113        23.2            2.6              NA 
-    ## 4 720120        27              2.6              NA 
-    ## 5 720137        22              1.5              NA 
-    ## 6 720151        27.1            3.1              NA 
-    ## # … with 1,589 more rows
+    ##    temp wind.sp atm.press
+    ##   <dbl>   <dbl>     <dbl>
+    ## 1  23.7    2.46     1015.
     ## 
     ## # Use as.data.table()/as.data.frame()/as_tibble() to access results
 
