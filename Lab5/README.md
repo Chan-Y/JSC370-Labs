@@ -92,9 +92,11 @@ the MET data.
     plan to work with those).
 
 ``` r
-library(dtplyr)
+library(dtplyr) # translator between dplyr (tidyverse) and data.table
 library(dplyr)
 library(data.table)
+library(leaflet)
+library(ggplot2)
 ```
 
 2.  Load the met data from
@@ -109,11 +111,6 @@ library(data.table)
 # Download the data
 stations <- fread("ftp://ftp.ncdc.noaa.gov/pub/data/noaa/isd-history.csv")
 stations[, USAF := as.integer(USAF)]
-```
-
-    ## Warning in eval(jsub, SDenv, parent.frame()): NAs introduced by coercion
-
-``` r
 # Dealing with NAs and 999999
 stations[, USAF   := fifelse(USAF == 999999, NA_integer_, USAF)]
 stations[, CTRY   := fifelse(CTRY == "", NA_character_, CTRY)]
@@ -128,16 +125,21 @@ stations <- stations[n == 1,][, n := NULL]
 ```
 
 ``` r
-fn <- "https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab03/met_all.gz"
-if (!file.exists("met_all.gz"))
-  download.file(fn, destfile = "met_all.gz")
+if (!file.exists("met_all.gz")) {
+ download.file(
+      url = "https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab03/met_all.gz",
+      destfile = "met_all.gz",
+      method   = "libcurl",
+      timeout  = 60
+      ) 
+}
 met <- data.table::fread("met_all.gz")
 ```
 
 3.  Merge the data as we did during the lecture.
 
 ``` r
-merged_data <- merge(
+met <- merge(
   x = met,
   y = stations,
   by.x = "USAFID",
@@ -145,6 +147,11 @@ merged_data <- merge(
   all.x = TRUE,
   all.y = FALSE
 )
+# Make it lazy
+met_lz <- lazy_dt(met, immutable = FALSE)
+
+# MERGE OPT2 Same as left join in tidyverse
+# left_join(x = met, y = stations, by = c("USAFID"="USAF"))
 ```
 
 ## Question 1: Representative station for the US
@@ -155,31 +162,109 @@ weather stations that best represent continental US using the
 `quantile()` function. Do these three coincide?
 
 ``` r
-merged_data %>% 
+# average for each station
+met_avg_lz <- met_lz %>% 
   group_by(USAFID) %>% 
   summarise(
-    median_temp = median(temp, na.rm = TRUE),
-    median_wind_sp = median(wind.sp, na.rm = TRUE),
-    median_atm_press = median(atm.press, na.rm = TRUE)
-  )
+    # tmp = mean(temp, na.rm = TRUE),
+    # wind.sp = mean(wind.sp, na.rm = TRUE),
+    # atm.press = mean(atm.press, na.rm = TRUE)
+    # <===equivalent===>
+    across(
+      c(temp, wind.sp, atm.press),
+      function(x) mean(x, na.rm = TRUE)
+    )
+  ) 
+# find median of temp, wind.sp, atm.press
+met_med_lz <- met_avg_lz %>% 
+  summarise(across(
+    2:4,
+    function(x) quantile(x, probs = .5, na.rm = TRUE)
+  )) 
+met_med_lz
 ```
 
-    ## Source: local data table [1,595 x 4]
-    ## Call:   `_DT1`[, .(median_temp = median(temp, na.rm = TRUE), median_wind_sp = median(wind.sp, 
-    ##     na.rm = TRUE), median_atm_press = median(atm.press, na.rm = TRUE)), 
-    ##     keyby = .(USAFID)]
+    ## Source: local data table [1 x 3]
+    ## Call:   `_DT1`[, .(temp = (function (x) 
+    ## mean(x, na.rm = TRUE))(temp), wind.sp = (function (x) 
+    ## mean(x, na.rm = TRUE))(wind.sp), atm.press = (function (x) 
+    ## mean(x, na.rm = TRUE))(atm.press)), keyby = .(USAFID)][, .(temp = (function (x) 
+    ## quantile(x, probs = 0.5, na.rm = TRUE))(temp), wind.sp = (function (x) 
+    ## quantile(x, probs = 0.5, na.rm = TRUE))(wind.sp), atm.press = (function (x) 
+    ## quantile(x, probs = 0.5, na.rm = TRUE))(atm.press))]
     ## 
-    ##   USAFID median_temp median_wind_sp median_atm_press
-    ##    <int>       <dbl>          <dbl>            <dbl>
-    ## 1 690150        32.8            3.1            1010.
-    ## 2 720110        31              2.1              NA 
-    ## 3 720113        23.2            2.6              NA 
-    ## 4 720120        27              2.6              NA 
-    ## 5 720137        22              1.5              NA 
-    ## 6 720151        27.1            3.1              NA 
-    ## # … with 1,589 more rows
+    ##    temp wind.sp atm.press
+    ##   <dbl>   <dbl>     <dbl>
+    ## 1  23.7    2.46     1015.
     ## 
     ## # Use as.data.table()/as.data.frame()/as_tibble() to access results
+
+``` r
+# Station closer to median temperature
+temp_id <- met_avg_lz %>%
+  mutate(
+    d = abs(temp - met_med_lz %>% pull(temp))
+  ) %>%
+  arrange(d) %>%
+  slice(1) %>%
+  pull(USAFID)
+
+# Station closer to median wind.sp
+wsp_id <- met_avg_lz %>%
+  mutate(
+    d = abs(wind.sp - met_med_lz %>% pull(wind.sp))
+  ) %>%
+  arrange(d) %>%
+  slice(1) %>%
+  pull(USAFID)
+
+# Station closer to median atm.press
+atm_id <- met_avg_lz %>%
+  mutate(
+    d = abs(atm.press - met_med_lz %>% pull(atm.press))
+  ) %>%
+  arrange(d) %>%
+  slice(1) %>%
+  pull(USAFID)
+
+
+cat(
+  "ID with median ...",
+  "\n\t temperature: ", temp_id,
+  "\n\t wind speed: ", wsp_id,
+  "\n\t atm pressure: ", atm_id
+)
+```
+
+    ## ID with median ... 
+    ##   temperature:  725515 
+    ##   wind speed:  720929 
+    ##   atm pressure:  723200
+
+``` r
+met_lz %>% 
+  select(USAFID, lon, lat) %>% 
+  distinct() %>% 
+  filter(USAFID %in% c(temp_id, wsp_id, atm_id))
+```
+
+    ## Source: local data table [5 x 3]
+    ## Call:   unique(`_DT1`[, .(USAFID, lon, lat)])[USAFID %in% c(temp_id, 
+    ##     wsp_id, atm_id)]
+    ## 
+    ##   USAFID   lon   lat
+    ##    <int> <dbl> <dbl>
+    ## 1 720929 -92.0  45.5
+    ## 2 723200 -85.2  34.4
+    ## 3 723200 -85.2  34.3
+    ## 4 723200 -85.2  34.4
+    ## 5 725515 -96.8  40.3
+    ## 
+    ## # Use as.data.table()/as.data.frame()/as_tibble() to access results
+
+The three stations do not coincide. The median station for temperature
+has ID 725515, the station for median wind speed has ID 720929, and for
+atmospheric pressure, it has ID 723200.
 
 Knit the document, commit your changes, and save it on GitHub. Don’t
 forget to add `README.md` to the tree, the first time you render it.
