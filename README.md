@@ -97,6 +97,7 @@ library(dplyr)
 library(data.table)
 library(leaflet)
 library(ggplot2)
+library(mgcv)
 ```
 
 2.  Load the met data from
@@ -476,8 +477,8 @@ close_mid_st %>%
             title = "State Representative & Mid-point Station", opacity = 1)
 ```
 
-<div class="leaflet html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-88a7e8ee4a9b82db3368" style="width:672px;height:480px;"></div>
-<script type="application/json" data-for="htmlwidget-88a7e8ee4a9b82db3368">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["OpenStreetMap",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addCircles","args":[[36.3189948519949,31.106,43.622,33.9646951983298,40.4827108433735,38.096,35.6,42.3777333333333,47.1038340767172,32.6332458296752,45.1411456215152,32.383,40.711,35.5820807424594,38.01,41.9910173745174,40.849950395399,41.6230007980846,44.523,44.3590049261084,39,39.1742046332046,33.4668795483061,35.4169039487727,43.0643970117396,30.718,37.578,28.474,39.05,40.616,40.033,35.0029964747356,38.0650046816479,48.39,44.204,32.3202025316456,41.5099990825688,38.0510112923463,40.219,44.3810077071291,36.009,42.206297648013,41.597,41.876,39.1329054054054,43.5672086956522,44.533,45.8054722474977],[-119.628,-98.196,-84.737,-80.8000501043841,-88.9483614457831,-92.5528783269962,-92.45,-122.870865740741,-122.286834076717,-83.5997190517998,-94.507,-86.3506071794872,-86.375,-79.101,-77.97,-93.6189961389961,-77.849950395399,-98.9480031923384,-114.215048933501,-89.8370098522168,-80.274,-76.6819034749035,-111.732899623588,-97.3831921024546,-108.456947705443,-91.479,-84.77,-82.4540026064292,-105.510043030031,-83.0639948240166,-74.3501562130178,-105.662009400705,-97.861,-100.024,-72.562,-90.0789738924051,-72.8280009174312,-117.089996235885,-111.723,-100.285004816956,-86.52,-75.980301703163,-71.412,-71.021,-75.4669684684685,-71.4325130434783,-69.6672303618711,-108.540024567789],200,null,null,{"interactive":true,"className":"","stroke":true,"color":"blue","weight":5,"opacity":1,"fill":true,"fillColor":"blue","fillOpacity":1},null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null,null]},{"method":"addCircles","args":[[33.8126445959104,29.7089922705314,42.2669724409449,34.4979967776584,41.4632502351834,37.152,35.831000967118,42.1470528169014,31.536,45.5430087241003,33.212,41.4530010638298,36.047,38.137011684518,42.5535839285714,41.3338032388664,41.9856836734694,42.5420088495575,44.3590049261084,39.643,39.4717428571429,32.1669504405286,36.1619871031746,44.3390462962963,32.5159599542334,37.9003206568712,26.5850051546392,37.3069902080783,40.708,40.033,34.3835781584582,39.5509035769829,43.344,31.1829822852081,41.7360101010101,40.0679923664122,41.1173656050955,45.443765323993,35.5930237288136,42.642987628866,41.5329991281604,41.9099972527473,39.6740047984645,43.2040901033973,44.45,45.6980046136102],[-118.146523855891,-98.0459922705314,-84.466968503937,-82.7099989258862,-90.5203170272813,-94.4950114942529,-90.646,-121.724052816901,-82.507,-94.0510196292257,-87.616,-87.0060010638298,-79.477,-78.454988315482,-92.4008803571429,-75.7249967611336,-97.4347891156463,-113.766053097345,-89.8370098522168,-79.916,-76.1699571428571,-110.883,-97.0889613095238,-105.540990740741,-92.04097597254,-85.9672290406223,-81.8610051546392,-108.626004895961,-84.027,-74.3501562130178,-103.315653104925,-97.6509035769829,-72.5179990974729,-90.4710035429584,-72.6509797979798,-118.568984732824,-111.966365605096,-98.413442206655,-88.9169966101695,-77.055993814433,-71.2829991281604,-70.729,-75.6060009596929,-71.5024542097489,-68.3667746192893,-110.440038062284],200,null,null,{"interactive":true,"className":"","stroke":true,"color":"red","weight":5,"opacity":1,"fill":true,"fillColor":"red","fillOpacity":1},null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null,null]},{"method":"addLegend","args":[{"colors":["#0000FF","#FF0000"],"labels":["Mid-point station","State Rep"],"na_color":null,"na_label":"NA","opacity":1,"position":"bottomleft","type":"factor","title":"State Representative & Mid-point Station","extra":null,"layerId":null,"className":"info legend","group":null}]}],"limits":{"lat":[26.5850051546392,48.39],"lng":[-122.870865740741,-68.3667746192893]}},"evals":[],"jsHooks":[]}</script>
+<div class="leaflet html-widget html-fill-item-overflow-hidden html-fill-item" id="htmlwidget-7b021bc8c4a72b0a3848" style="width:672px;height:480px;"></div>
+<script type="application/json" data-for="htmlwidget-7b021bc8c4a72b0a3848">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"calls":[{"method":"addProviderTiles","args":["OpenStreetMap",null,null,{"errorTileUrl":"","noWrap":false,"detectRetina":false}]},{"method":"addCircles","args":[[36.3189948519949,31.106,43.622,33.9646951983298,40.4827108433735,38.096,35.6,42.3777333333333,47.1038340767172,32.6332458296752,45.1411456215152,32.383,40.711,35.5820807424594,38.01,41.9910173745174,40.849950395399,41.6230007980846,44.523,44.3590049261084,39,39.1742046332046,33.4668795483061,35.4169039487727,43.0643970117396,30.718,37.578,28.474,39.05,40.616,40.033,35.0029964747356,38.0650046816479,48.39,44.204,32.3202025316456,41.5099990825688,38.0510112923463,40.219,44.3810077071291,36.009,42.206297648013,41.597,41.876,39.1329054054054,43.5672086956522,44.533,45.8054722474977],[-119.628,-98.196,-84.737,-80.8000501043841,-88.9483614457831,-92.5528783269962,-92.45,-122.870865740741,-122.286834076717,-83.5997190517998,-94.507,-86.3506071794872,-86.375,-79.101,-77.97,-93.6189961389961,-77.849950395399,-98.9480031923384,-114.215048933501,-89.8370098522168,-80.274,-76.6819034749035,-111.732899623588,-97.3831921024546,-108.456947705443,-91.479,-84.77,-82.4540026064292,-105.510043030031,-83.0639948240166,-74.3501562130178,-105.662009400705,-97.861,-100.024,-72.562,-90.0789738924051,-72.8280009174312,-117.089996235885,-111.723,-100.285004816956,-86.52,-75.980301703163,-71.412,-71.021,-75.4669684684685,-71.4325130434783,-69.6672303618711,-108.540024567789],200,null,null,{"interactive":true,"className":"","stroke":true,"color":"blue","weight":5,"opacity":1,"fill":true,"fillColor":"blue","fillOpacity":1},null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null,null]},{"method":"addCircles","args":[[33.8126445959104,29.7089922705314,42.2669724409449,34.4979967776584,41.4632502351834,37.152,35.831000967118,42.1470528169014,31.536,45.5430087241003,33.212,41.4530010638298,36.047,38.137011684518,42.5535839285714,41.3338032388664,41.9856836734694,42.5420088495575,44.3590049261084,39.643,39.4717428571429,32.1669504405286,36.1619871031746,44.3390462962963,32.5159599542334,37.9003206568712,26.5850051546392,37.3069902080783,40.708,40.033,34.3835781584582,39.5509035769829,43.344,31.1829822852081,41.7360101010101,40.0679923664122,41.1173656050955,45.443765323993,35.5930237288136,42.642987628866,41.5329991281604,41.9099972527473,39.6740047984645,43.2040901033973,44.45,45.6980046136102],[-118.146523855891,-98.0459922705314,-84.466968503937,-82.7099989258862,-90.5203170272813,-94.4950114942529,-90.646,-121.724052816901,-82.507,-94.0510196292257,-87.616,-87.0060010638298,-79.477,-78.454988315482,-92.4008803571429,-75.7249967611336,-97.4347891156463,-113.766053097345,-89.8370098522168,-79.916,-76.1699571428571,-110.883,-97.0889613095238,-105.540990740741,-92.04097597254,-85.9672290406223,-81.8610051546392,-108.626004895961,-84.027,-74.3501562130178,-103.315653104925,-97.6509035769829,-72.5179990974729,-90.4710035429584,-72.6509797979798,-118.568984732824,-111.966365605096,-98.413442206655,-88.9169966101695,-77.055993814433,-71.2829991281604,-70.729,-75.6060009596929,-71.5024542097489,-68.3667746192893,-110.440038062284],200,null,null,{"interactive":true,"className":"","stroke":true,"color":"red","weight":5,"opacity":1,"fill":true,"fillColor":"red","fillOpacity":1},null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null,null]},{"method":"addLegend","args":[{"colors":["#0000FF","#FF0000"],"labels":["Mid-point station","State Rep"],"na_color":null,"na_label":"NA","opacity":1,"position":"bottomleft","type":"factor","title":"State Representative & Mid-point Station","extra":null,"layerId":null,"className":"info legend","group":null}]}],"limits":{"lat":[26.5850051546392,48.39],"lng":[-122.870865740741,-68.3667746192893]}},"evals":[],"jsHooks":[]}</script>
 
 ``` r
 # https://search.r-project.org/CRAN/refmans/leaflegend/html/addLeafLegends.html
@@ -577,6 +578,116 @@ need the `mgcv` package and `gam()` function to do this.
   Create a scatterplot of the two variables using ggplot2. Add both a
   linear regression line and a smooth line.
 
+``` r
+# compute median for each station
+met_median <- met_lz %>% 
+  group_by(USAFID) %>% 
+  summarize(across(
+    c(temp, wind.sp),
+    function(x) quantile(x, probs = .5, na.rm = TRUE)
+  )) %>% 
+  collect()
+
+# compute correlation between median temp and median wind.sp
+cor(met_median$temp, met_median$wind.sp, use="complete")
+```
+
+    ## [1] 0.1474481
+
+``` r
+# create scatter plot of median temp (y) and median wind.sp (x)
+met_median %>% 
+  filter(!is.na(wind.sp), !is.na(temp)) %>% 
+  ggplot(aes(x = wind.sp, y = temp)) +
+    geom_point() +
+    geom_smooth(method = 'lm',col = "red") + 
+    geom_smooth(col = "blue")
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+    ## `geom_smooth()` using method = 'gam' and formula = 'y ~ s(x, bs = "cs")'
+
+![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
 - fit both a linear model and a spline model (use `gam()` with a cubic
   regression spline on wind speed). Summarize and plot the results from
   the models and interpret which model is the best fit and why.
+
+``` r
+# linear model
+lmod <- lm(temp ~ wind.sp, data = met_median)
+summary(lmod)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = temp ~ wind.sp, data = met_median)
+    ## 
+    ## Residuals:
+    ##      Min       1Q   Median       3Q      Max 
+    ## -17.7243  -2.6518  -0.2309   2.7691  14.5052 
+    ## 
+    ## Coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept) 22.23088    0.21779  102.08  < 2e-16 ***
+    ## wind.sp      0.48614    0.08212    5.92 3.94e-09 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 3.849 on 1577 degrees of freedom
+    ##   (16 observations deleted due to missingness)
+    ## Multiple R-squared:  0.02174,    Adjusted R-squared:  0.02112 
+    ## F-statistic: 35.05 on 1 and 1577 DF,  p-value: 3.941e-09
+
+``` r
+plot(predict(lmod, met_median), type='l')
+```
+
+![](README_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->
+
+``` r
+# spline model
+gmod <- gam(temp ~ s(wind.sp, k=10, fx = TRUE, bs='cr'), data = met_median)
+summary(gmod)
+```
+
+    ## 
+    ## Family: gaussian 
+    ## Link function: identity 
+    ## 
+    ## Formula:
+    ## temp ~ s(wind.sp, k = 10, fx = TRUE, bs = "cr")
+    ## 
+    ## Parametric coefficients:
+    ##             Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept) 23.38566    0.09548   244.9   <2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Approximate significance of smooth terms:
+    ##            edf Ref.df     F p-value    
+    ## s(wind.sp)   9      9 10.01  <2e-16 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## R-sq.(adj) =  0.0489   Deviance explained = 5.43%
+    ## GCV = 14.486  Scale est. = 14.394    n = 1579
+
+``` r
+plot(gmod)
+```
+
+![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+
+The correlation between the median wind speed and the median temp is
+around 0.1474481, which indicates a weak association.
+
+Additionally, the summary table for both models shows a p-value less
+than 0.5 hence the coefficient for wind speed is significant. Notice
+that the p-value for the spline model is even smaller than it is in the
+linear model which indicates the spline model is a better fit. And the
+plot generated by the spline model is closer to the original plot.
+
+Moreover, the R-squared value for the linear model is about 0.02174
+while for the spline model is about 0.0489, so more variation can be
+explained by the spline model.
