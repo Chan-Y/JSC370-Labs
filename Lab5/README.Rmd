@@ -361,7 +361,8 @@ close_mid_st
 ```
 Visualize state rep and mid-point stations on map view
 ```{r}
-close_mid_st %>% 
+library(mapview)
+map <-  close_mid_st %>% 
   collect() %>% 
   leaflet() %>% 
   addProviderTiles('OpenStreetMap') %>% 
@@ -382,8 +383,10 @@ close_mid_st %>%
             pal = colorFactor(c('blue', 'red'), c('State Rep', 'Mid-point station')),
             values = c('State Rep', 'Mid-point station'),
             title = "State Representative & Mid-point Station", opacity = 1)
-
+mapshot(map, file = "mapview.png")
 # https://search.r-project.org/CRAN/refmans/leaflegend/html/addLeafLegends.html
+# https://stackoverflow.com/questions/31336898/how-to-save-leaflet-in-r-map-as-png-or-jpg-file
+map
 ```
 
 
