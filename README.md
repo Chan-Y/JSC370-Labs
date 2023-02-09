@@ -277,6 +277,103 @@ of looking at one variable at a time, look at the euclidean distance. If
 multiple stations show in the median, select the one located at the
 lowest latitude.
 
+``` r
+# average for each station
+met_avg_lz <- met_lz %>% 
+  group_by(USAFID) %>% 
+  summarise(across(
+      c(temp, wind.sp, atm.press, lat, lon),
+      function(x) mean(x, na.rm = TRUE)
+    )) 
+
+# average for each station with its lat, lon, state
+met_avg_lz <- 
+  left_join(met_avg_lz, stations, by = c("USAFID"="USAF"))
+
+# median of temp, wind.sp, atm.press per state
+met_st_med_lz <- met_avg_lz %>% 
+  group_by(STATE) %>% 
+  summarise(across(
+    2:4,
+    function(x) quantile(x, probs = .5, na.rm = TRUE)
+  ))
+
+# average for each station with it's state median
+# by met_avg_lz left join met_st_med_lz on state
+met_avg_lz <- 
+  left_join(met_avg_lz, met_st_med_lz, by = "STATE") 
+```
+
+Compute the euclidean distance between state median value and each
+station
+
+``` r
+udist <- function(pt1, pt2) {
+  sqrt(sum((pt1 - pt2)^2))
+}
+# tried but failed to use function, will try later again
+
+met_avg_lz <- met_avg_lz %>% 
+  mutate(dist = sqrt(
+    (temp.x-temp.y)^2 + (wind.sp.x-wind.sp.y)^2 + (atm.press.x-atm.press.y)^2 
+  ))
+
+
+# https://stackoverflow.com/questions/24070714/extract-row-corresponding-to-minimum-value-of-a-variable-by-group
+state_rep <- met_avg_lz %>% 
+  group_by(STATE) %>% 
+  slice(which.min(dist))
+state_rep
+```
+
+    ## Source: local data table [46 x 12]
+    ## Groups: STATE
+    ## Call:
+    ##   _DT3 <- setnames(setcolorder(setnames(setcolorder(`_DT2`[`_DT1`[, .(temp = <function(x)
+    ##   _DT3 <-   mean(x, na.rm = TRUE)>(temp), wind.sp = <function(x) mean(x, na.rm = TRUE)>(
+    ##   _DT3 <-   wind.sp), atm.press = <function(x) mean(x, na.rm = TRUE)>(atm.press), lat = <function(
+    ##   _DT3 <-   x) mean(x, na.rm = TRUE)>(lat), lon = <function(x) mean(x, na.rm = TRUE)>(lon)),
+    ##   _DT3 <- keyby = .(USAFID)], on = .(USAF = USAFID), allow.cartesian = TRUE], <int: 1L,
+    ##   _DT3 <-   4L, 5L, 6L, 7L, ...>), "USAF", "USAFID")[, .(temp = <function(x) quantile(x,
+    ##   _DT3 <-   probs = 0.5, na.rm = TRUE)>(temp), wind.sp = <function(x) quantile(x, probs = 0.5,
+    ##   _DT3 <-   na.rm = TRUE)>(wind.sp), atm.press = <function(x) quantile(x, probs = 0.5,
+    ##   _DT3 <-   na.rm = TRUE)>(atm.press)), keyby = .(STATE)][setnames(setcolorder(`_DT2`[
+    ##   _DT3 <-   `_DT1`[, .(temp = <function(x) mean(x, na.rm = TRUE)>(temp), wind.sp = <function(
+    ##   _DT3 <-     x) mean(x, na.rm = TRUE)>(wind.sp), atm.press = <function(x) mean(x, na.rm = TRUE)>(
+    ##   _DT3 <-     atm.press), lat = <function(x) mean(x, na.rm = TRUE)>(lat), lon = <function(
+    ##   _DT3 <-     x) mean(x, na.rm = TRUE)>(lon)), keyby = .(USAFID)], on = .(USAF = USAFID),
+    ##   _DT3 <-   allow.cartesian = TRUE], <int: 1L, 4L, 5L, 6L, 7L, ...>), "USAF", "USAFID"),
+    ##   _DT3 <- on = .(STATE), allow.cartesian = TRUE], <int: 5L, 6L, 7L, 8L, 9L, ...>),
+    ##   _DT3 <-   <chr: "i.temp", "i.wind.sp", "i.atm.press", "temp", "wind.sp", ...>,
+    ##   _DT3 <-   <chr: "temp.x", "wind.sp.x", "atm.press.x", "temp.y", "wind.sp.y", ...>)[,
+    ##   _DT3 <-   `:=`(dist = sqrt((temp.x - temp.y)^2 + (wind.sp.x - wind.sp.y)^2 +
+    ##   _DT3 <-     (atm.press.x - atm.press.y)^2))]
+    ##   `_DT3`[`_DT3`[, .I[which.min(dist)[between(which.min(dist), -.N, 
+    ##     .N)]], by = .(STATE)]$V1]
+    ## 
+    ##   USAFID temp.x wind.s…¹ atm.p…²   lat    lon CTRY  STATE temp.y wind.…³ atm.p…⁴
+    ##    <int>  <dbl>    <dbl>   <dbl> <dbl>  <dbl> <chr> <chr>  <dbl>   <dbl>   <dbl>
+    ## 1 722970   22.8     2.33   1013.  33.8 -118.  US    CA      22.7    2.57   1013.
+    ## 2 722416   29.8     3.54   1012.  29.7  -98.0 US    TX      29.8    3.41   1012.
+    ## 3 725395   20.4     2.36   1015.  42.3  -84.5 US    MI      20.5    2.27   1015.
+    ## 4 723190   25.7     2.25   1015.  34.5  -82.7 US    SC      25.8    1.70   1015.
+    ## 5 725440   22.8     2.57   1015.  41.5  -90.5 US    IL      22.4    2.24   1015.
+    ## 6 723495   24.3     2.55   1014.  37.2  -94.5 US    MO      24.0    2.45   1015.
+    ## # … with 40 more rows, 1 more variable: dist <dbl>, and abbreviated variable
+    ## #   names ¹​wind.sp.x, ²​atm.press.x, ³​wind.sp.y, ⁴​atm.press.y
+    ## 
+    ## # Use as.data.table()/as.data.frame()/as_tibble() to access results
+
+``` r
+# Check whether exists multiple stations for one state
+nrow(as_tibble(state_rep)) == length(unique(state_rep %>% pull(STATE)))
+```
+
+    ## [1] TRUE
+
+In result `state_rep`, for each state, there’s only 1 weather station
+listed, so no need to select by latitude.
+
 Knit the doc and save it on GitHub.
 
 ## Question 3: In the middle?

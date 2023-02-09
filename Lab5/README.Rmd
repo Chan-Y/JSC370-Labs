@@ -258,7 +258,61 @@ Knit the document, commit your changes, and save it on GitHub. Don't forget to a
 Just like the previous question, you are asked to identify what is the most representative, the median, station per state. This time, instead of looking at one variable at a time, look at the euclidean distance. If multiple stations show in the median, select the one located at the lowest latitude.
 
 ```{r}
+# average for each station
+met_avg_lz <- met_lz %>% 
+  group_by(USAFID) %>% 
+  summarise(across(
+      c(temp, wind.sp, atm.press, lat, lon),
+      function(x) mean(x, na.rm = TRUE)
+    )) 
+
+# average for each station with its lat, lon, state
+met_avg_lz <- 
+  left_join(met_avg_lz, stations, by = c("USAFID"="USAF"))
+
+# median of temp, wind.sp, atm.press per state
+met_st_med_lz <- met_avg_lz %>% 
+  group_by(STATE) %>% 
+  summarise(across(
+    2:4,
+    function(x) quantile(x, probs = .5, na.rm = TRUE)
+  ))
+
+# average for each station with it's state median
+# by met_avg_lz left join met_st_med_lz on state
+met_avg_lz <- 
+  left_join(met_avg_lz, met_st_med_lz, by = "STATE") 
 ```
+
+Compute the euclidean distance between state median value and each station 
+
+```{r}
+udist <- function(pt1, pt2) {
+  sqrt(sum((pt1 - pt2)^2))
+}
+# tried but failed to use function, will try later again
+
+met_avg_lz <- met_avg_lz %>% 
+  mutate(dist = sqrt(
+    (temp.x-temp.y)^2 + (wind.sp.x-wind.sp.y)^2 + (atm.press.x-atm.press.y)^2 
+  ))
+
+
+# https://stackoverflow.com/questions/24070714/extract-row-corresponding-to-minimum-value-of-a-variable-by-group
+state_rep <- met_avg_lz %>% 
+  group_by(STATE) %>% 
+  slice(which.min(dist))
+state_rep
+```
+
+
+```{r}
+# Check whether exists multiple stations for one state
+nrow(as_tibble(state_rep)) == length(unique(state_rep %>% pull(STATE)))
+```
+
+In result `state_rep`, for each state, there's only 1 weather station listed, so no need to select by latitude. 
+
 
 Knit the doc and save it on GitHub.
 
