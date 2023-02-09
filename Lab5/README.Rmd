@@ -2,6 +2,7 @@
 title: "Lab 05 - Data Wrangling"
 author: "Chan Yu"
 output: 
+  # html_document:
   github_document: default
 always_allow_html: true
 ---
