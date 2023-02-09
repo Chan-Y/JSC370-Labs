@@ -380,6 +380,8 @@ close_mid_st %>%
             pal = colorFactor(c('blue', 'red'), c('State Rep', 'Mid-point station')),
             values = c('State Rep', 'Mid-point station'),
             title = "State Representative & Mid-point Station", opacity = 1)
+
+# https://search.r-project.org/CRAN/refmans/leaflegend/html/addLeafLegends.html
 ```
 
 
@@ -397,6 +399,22 @@ Start by computing the states' average temperature. Use that measurement to clas
 - High: temp >= 25
 
 ```{r}
+# compute average temperature for each state
+st_avg_temp_lz <- met_lz %>% 
+  group_by(STATE) %>% 
+  summarise(st_avg_temp = mean(temp, na.rm = TRUE))
+
+# append st_avg_temp to met_lz
+met_st_avg_tmp_lz <- 
+  left_join(met_lz, st_avg_temp_lz, by="STATE")
+
+# generate 'temp_level'
+met_st_avg_tmp_lz <- met_st_avg_tmp_lz %>% 
+  mutate(temp_level = case_when(
+    st_avg_temp < 20 ~ 'low',
+    st_avg_temp >= 20 & st_avg_temp < 25 ~ 'Mid',
+    st_avg_temp >= 25 ~ 'High'
+  ))
 ```
 
 Once you are done with that, you can compute the following:
@@ -410,6 +428,17 @@ Once you are done with that, you can compute the following:
 All by the levels described before.
 
 ```{r}
+met_st_avg_tmp_lz %>% 
+  group_by(temp_level) %>% 
+  summarize(
+    num_entries = n(),
+    num_NA_temp = sum(is.na(temp)),
+    num_station = length(unique(USAFID)),
+    num_state = length(unique(STATE)),
+    mean_temp = mean(temp, na.rm = TRUE),
+    mean_wind.sp = mean(wind.sp, na.rm = TRUE),
+    mean_atm.press = mean(atm.press, na.rm = TRUE)
+  )
 ```
 
 Knit the document, commit your changes, and push them to GitHub. 
