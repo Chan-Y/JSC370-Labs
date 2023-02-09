@@ -3,6 +3,7 @@ title: "Lab 05 - Data Wrangling"
 author: "Chan Yu"
 output: 
   github_document: default
+always_allow_html: true
 ---
 
 
@@ -297,7 +298,7 @@ met_avg_lz <- met_avg_lz %>%
     (temp.x-temp.y)^2 + (wind.sp.x-wind.sp.y)^2 + (atm.press.x-atm.press.y)^2 
   ))
 
-
+# identify the shortest dist by group
 # https://stackoverflow.com/questions/24070714/extract-row-corresponding-to-minimum-value-of-a-variable-by-group
 state_rep <- met_avg_lz %>% 
   group_by(STATE) %>% 
@@ -321,7 +322,67 @@ Knit the doc and save it on GitHub.
 For each state, identify what is the station that is closest to the mid-point of the state. Combining these with the stations you identified in the previous question, use `leaflet()` to visualize all ~100 points in the same figure, applying different colors for those identified in this question.
 
 ```{r}
+# find location of each station
+stations_loc_lz <- met_lz %>% 
+  group_by(USAFID) %>% 
+  summarise(
+    across(
+      c(lat, lon),
+      function(x) mean(x, na.rm = TRUE)
+    )
+  ) 
+stations_loc_lz <- 
+  left_join(stations_loc_lz, stations, by = c("USAFID"="USAF")) 
+
+# find mid-point of each state
+mid_point_lz <- stations_loc_lz %>% 
+  group_by(STATE) %>% 
+  summarise(across(
+    2:3,
+    function(x) mean(x, na.rm = TRUE)
+  ))
+
+# append mid-point lat, lon, and dist to stations_loc_lz
+stations_loc_lz <- 
+  left_join(stations_loc_lz, mid_point_lz, by = "STATE") 
+
+stations_loc_lz <- stations_loc_lz %>% 
+  mutate(dist = sqrt(
+    (lat.x-lat.y)^2 + (lon.x-lon.y)^2 
+  ))
+
+# identify the closest stations
+close_mid_st <- stations_loc_lz %>% 
+  group_by(STATE) %>% 
+  slice(which.min(dist))
+close_mid_st
 ```
+Visualize state rep and mid-point stations on map view
+```{r}
+close_mid_st %>% 
+  collect() %>% 
+  leaflet() %>% 
+  addProviderTiles('OpenStreetMap') %>% 
+  addCircles(lat = ~lat.x, 
+             lng = ~lon.x, 
+             color = 'blue',
+             opacity = 1, 
+             fillOpacity = 1, 
+             radius = 200) %>% 
+  addCircles(lat = ~lat, 
+             lng = ~lon,
+             color = 'red',
+             opacity = 1, 
+             fillOpacity = 1, 
+             radius = 200,
+             data = collect(state_rep)) %>%
+  addLegend("bottomleft", 
+            pal = colorFactor(c('blue', 'red'), c('State Rep', 'Mid-point station')),
+            values = c('State Rep', 'Mid-point station'),
+            title = "State Representative & Mid-point Station", opacity = 1)
+```
+
+
 
 Knit the doc and save it on GitHub.
 
