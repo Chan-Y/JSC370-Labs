@@ -121,7 +121,8 @@ ids <- as.character(ids)
 ids <- stringr::str_extract_all(ids, "<Id>[\\d]+</Id>")[[1]]
 
 # Remove all the leading and trailing <Id> </Id>. Make use of "|"
-ids <- stringr::str_remove_all(ids, "<[/]?Id>")
+# ids <- stringr::str_remove_all(ids, "<[/]?Id>")
+ids <- stringr::str_remove_all(ids, "<Id>|</Id>")
 ```
 
 With the ids in hand, we can now try to get the abstracts of the papers. As
@@ -139,12 +140,12 @@ before, we will need to coerce the contents (results) to a list using:
     
 ```{r get-abstracts, eval = FALSE}
 publications <- GET(
-  url   = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi",
+  url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi",
   query = list(
     db ="pubmed",
     id = paste(ids, collapse = ","),
     retmax = 1000,
-    rettype= "abstract"
+    rettype = "abstract"
     )
 )
 
@@ -164,10 +165,10 @@ Using the function `stringr::str_extract_all()` applied on `publications_txt`, c
 
 Write a regular expression that captures all such instances
 
-```{r univ-institute-regex, eval = FALSE}
+```{r univ-institute-regex}
 institution <- str_extract_all(
   publications_txt,
-  "[YOUR REGULAR EXPRESSION HERE]"
+  "University\\s+of\\s+[[:alpha:]]+|[[:alpha:]]+\\s+Institute\\s+of\\s+[[:alpha:]]+"
   ) 
 institution <- unlist(institution)
 as.data.frame(table(institution))
@@ -182,8 +183,8 @@ And tabulate the results
 
 ```{r school-department, eval = FALSE}
 schools_and_deps <- str_extract_all(
-  abstracts_txt,
-  "[YOUR REGULAR EXPRESSION HERE]"
+  publications_txt,
+  "School\\s+of\\s+[[:alpha:]]+|Department\\s+of\\s+[[:alpha:]]+"
   )
 as.data.frame(table(schools_and_deps))
 ```
