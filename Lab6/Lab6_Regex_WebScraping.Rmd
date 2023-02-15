@@ -92,7 +92,7 @@ query_ids <- GET(
   query = list(
     db = "pubmed",
     term = "covid19 hawaii", 
-    retmax =1000  # total number of UIDs
+    retmax = 1000  # total number of UIDs
     )
 )
 
@@ -113,7 +113,7 @@ The Ids are wrapped around text in the following way: `<Id>... id number ...</Id
 we can use a regular expression that extract that information. Fill out the
 following lines of code:
 
-```{r get-ids, eval = FALSE}
+```{r get-ids}
 # Turn the result into a character vector
 ids <- as.character(ids)
 
@@ -138,7 +138,7 @@ before, we will need to coerce the contents (results) to a list using:
     
 **Pro-tip**: If you want `GET()` to take some element literal, wrap it around `I()` (as you would do in a formula in R). For example, the text `"123,456"` is replaced with `"123%2C456"`. If you don't want that behavior, you would need to do the following `I("123,456")`.
     
-```{r get-abstracts, eval = FALSE}
+```{r get-abstracts}
 publications <- GET(
   url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi",
   query = list(
@@ -181,7 +181,7 @@ Repeat the exercise and this time focus on schools and departments in the form o
 
 And tabulate the results
 
-```{r school-department, eval = FALSE}
+```{r school-department}
 schools_and_deps <- str_extract_all(
   publications_txt,
   "School\\s+of\\s+[[:alpha:]]+|Department\\s+of\\s+[[:alpha:]]+"
@@ -200,7 +200,7 @@ the XML a bit. We will use the `xml2::xml_children()` function to keep one eleme
 per id. This way, if a paper is missing the abstract, or something else, we will be able to properly match PUBMED IDS with their corresponding records.
 
 
-```{r one-string-per-response, eval = FALSE}
+```{r one-string-per-response}
 pub_char_list <- xml2::xml_children(publications)
 pub_char_list <- sapply(pub_char_list, as.character)
 ```
@@ -209,33 +209,37 @@ Now, extract the abstract and article title for each one of the elements of
 `pub_char_list`. You can either use `sapply()` as we just did, or simply
 take advantage of vectorization of `stringr::str_extract`
 
-```{r extracting-last-bit, eval = FALSE}
-abstracts <- str_extract(pub_char_list, "[YOUR REGULAR EXPRESSION]")
-abstracts <- str_remove_all(abstracts, "[CLEAN ALL THE HTML TAGS]")
-abstracts <- str_remove_all(abstracts, "[CLEAN ALL EXTRA WHITE SPACE AND NEW LINES]")
+```{r extracting-last-bit}
+abstracts <- str_extract(pub_char_list, "<Abstract>(\\n|.)+</Abstract>")
+abstracts <- str_remove_all(abstracts, "<Abstract>|</Abstract>")
+# abstracts <- str_remove_all(abstracts, "</?[[:alnum:]]+>")
+abstracts <- str_replace_all(abstracts, "\\s+", " ")
+table(is.na(abstracts))
 ```
 
   - How many of these don't have an abstract? 
 
-_Answer here._
+_There are 285 publications have abstract._
 
 Now, the title
 
-```{r process-titles, eval = FALSE}
-titles <- str_extract(pub_char_list, "[YOUR REGULAR EXPRESSION]")
-titles <- str_remove_all(titles, "[CLEAN ALL THE HTML TAGS]")
+```{r process-titles}
+titles <- str_extract(pub_char_list, "<ArticleTitle>(\\n|.)+</ArticleTitle>")
+titles <- str_remove_all(titles, '<(/)?[a-zA-Z]+\\s?[A-Za-z0-9=\\"\\s]+>')
+table(is.na(titles))
 ```
 
 - How many of these don't have a title ? 
 
-_Answer here._
+_There are 338 publications and they all have a title._
 
 Finally, put everything together into a single `data.frame` and use
 `knitr::kable` to print the results
 
-```{r build-db, eval = FALSE}
+```{r build-db}
 database <- data.frame(
-  "[DATA TO CONCATENATE]"
+  title = titles,
+  abstract = abstracts
 )
 knitr::kable(database)
 ```
