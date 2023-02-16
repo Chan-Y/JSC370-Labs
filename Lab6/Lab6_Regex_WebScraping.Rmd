@@ -13,11 +13,6 @@ knit: (function(input, ...) {
 ---
 
 
-```{r setup, echo=FALSE}
-knitr::opts_chunk$set(include  = TRUE)
-```
-
-
 # Learning goals
 
 - Use a real world API to make queries and process the data.
@@ -68,7 +63,7 @@ stringr::str_extract(counts, regex)
 
  - How many sars-cov-2 papers are there?
 
-_There are 192,677 sars-cov-2 papers in results. _
+_Answer here: There are 192,677 sars-cov-2 papers in results. _
 
 Don't forget to commit your work!
 
@@ -106,6 +101,10 @@ data could be using lists with the function `xml2::as_list()`. We will skip the 
 
 Take a look at the data, and continue with the next question (don't forget to 
 commit and push your results to your GitHub repo!).
+```{r}
+ids
+```
+
 
 ## Question 3: Get details about the articles
 
@@ -123,6 +122,8 @@ ids <- stringr::str_extract_all(ids, "<Id>[\\d]+</Id>")[[1]]
 # Remove all the leading and trailing <Id> </Id>. Make use of "|"
 # ids <- stringr::str_remove_all(ids, "<[/]?Id>")
 ids <- stringr::str_remove_all(ids, "<Id>|</Id>")
+
+head(ids)
 ```
 
 With the ids in hand, we can now try to get the abstracts of the papers. As
@@ -215,11 +216,12 @@ abstracts <- str_remove_all(abstracts, "<Abstract>|</Abstract>")
 # abstracts <- str_remove_all(abstracts, "</?[[:alnum:]]+>")
 abstracts <- str_replace_all(abstracts, "\\s+", " ")
 table(is.na(abstracts))
+length(pub_char_list)
 ```
 
   - How many of these don't have an abstract? 
 
-_There are 285 publications have abstract._
+_Answer here: There are 53 publications that have no abstract._
 
 Now, the title
 
@@ -231,7 +233,7 @@ table(is.na(titles))
 
 - How many of these don't have a title ? 
 
-_There are 338 publications and they all have a title._
+_Answer here: There are 338 publications total and they all have a title._
 
 Finally, put everything together into a single `data.frame` and use
 `knitr::kable` to print the results
@@ -256,8 +258,8 @@ View [here](https://cdn.jsdelivr.net/gh/:user/:repo@:tag/:file)
 
 For example, if we wanted to add a direct link the HTML page of lecture 6, we could do something like the following:
 
-```md
-View Week 6 Lecture [here]()
-```
+
+View Week 6 Lab Origin [here](https://jsc370.github.io/jsc370-2023/labs/lab06/lab06-regex.html)
+
 
 
