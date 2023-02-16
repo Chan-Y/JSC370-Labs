@@ -5,6 +5,13 @@ output:
   # html_document:
   github_document: default
 always_allow_html: true
+knit: (function(input, ...) {
+    rmarkdown::render(
+      input,
+      output_file = "README.md",
+      envir = globalenv()
+    )
+  })
 ---
 
 

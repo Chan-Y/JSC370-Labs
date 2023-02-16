@@ -129,12 +129,12 @@ stations <- stations[n == 1,][, n := NULL]
 if (!file.exists("met_all.gz")) {
  download.file(
       url = "https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab03/met_all.gz",
-      destfile = "met_all.gz",
+      destfile = "../data/met_all.gz",
       method   = "libcurl",
       timeout  = 60
       ) 
 }
-met <- data.table::fread("met_all.gz")
+met <- data.table::fread("../data/met_all.gz")
 ```
 
 3.  Merge the data as we did during the lecture.
