@@ -121,15 +121,15 @@ stations <- stations[n == 1,][, n := NULL]
 
 ```{r}
 # read met dataset
-if (!file.exists("../data/met_all.gz")) {
+if (!file.exists("met_all.gz")) {
  download.file(
       url = "https://raw.githubusercontent.com/JSC370/jsc370-2023/main/labs/lab03/met_all.gz",
-      destfile = "../data/../data/met_all.gz",
+      destfile = "met_all.gz",
       method   = "libcurl",
       timeout  = 60
       ) 
 }
-met <- data.table::fread("../data/met_all.gz")
+met <- data.table::fread("met_all.gz")
 ```
 
 3. Merge the data as we did during the lecture.
@@ -514,5 +514,6 @@ gam_mod <- gam(temp ~ s(wind.sp, bs = "cr", k = 10), data = met_med_tbl)
 summary(gam_mod)
 plot(gam_mod)
 ```
+
 
 
