@@ -90,6 +90,17 @@ p2_scatter <- cv_states_today_scatter %>%
   layout(title = "Population-normalized COVID-19 deaths vs. population density",
                   yaxis = list(title = "Deaths per 100k"), xaxis = list(title = "Population Density"),
          hovermode = "compare")
+
+p3_scatter <- cv_states_today_scatter %>% 
+  plot_ly(x = ~log(pop_density), y = ~deathsper100k,
+          type = 'scatter', mode = 'markers', color = ~state,
+          size = ~population, sizes = c(5, 70), marker = list(sizemode='diameter', opacity=0.5),
+          hoverinfo = 'text',
+          text = ~paste( paste(state, ":", sep=""), paste(" Cases per 100k: ", per100k, sep="") , paste(" Deaths per 100k: ",
+                        deathsper100k, sep=""), sep = "<br>")) %>%
+  layout(title = "Population-normalized COVID-19 deaths vs. population density",
+                  yaxis = list(title = "Deaths per 100k"), xaxis = list(title = "Population Density (log transformed)"),
+         hovermode = "compare")
 ```
 
 <br>
@@ -110,7 +121,11 @@ p1_scatter
 p2_scatter
 ```
 
-## {-}
+### W/O DC Log transformed
+```{r}
+p3_scatter
+```
+
 
 <br>
 
